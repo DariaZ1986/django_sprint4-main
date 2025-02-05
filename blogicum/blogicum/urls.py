@@ -16,6 +16,12 @@ Including another URLconf
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
+from django.conf.urls import handler500, handler404, handler403
+from core.views import server_error, page_not_found, permission_denied
+
+handler404 = 'core.views.page_not_found'
+handler500 = 'core.views.server_error'
+handler403 = 'core.views.permission_denied'
 
 urlpatterns = [
     path('admin/', admin.site.urls),

@@ -35,6 +35,8 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
     'pages.apps.PagesConfig',
+    'core.apps.CoreConfig',
+    'django_bootstrap5',
     'blog.apps.BlogConfig',
     'django.contrib.admin',
     'django.contrib.auth',
