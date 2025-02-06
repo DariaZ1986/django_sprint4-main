@@ -1,8 +1,10 @@
 from datetime import datetime
 
-from blog.models import Category, Post
-from django.shortcuts import get_object_or_404, render
+from django.contrib.auth.forms import UserCreationForm
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import ListView
+
+from blog.models import Category, Post
 
 
 def get_filtered_posts(queryset):
@@ -78,3 +80,15 @@ def create_post(request):
 def profile(request):
     pass
 
+
+def registration(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login')
+    else:
+        form = UserCreationForm()
+    
+    return render(request, 'registration/login.html',
+                  {'form': form, 'registration': True})

@@ -1,7 +1,8 @@
 from django.urls import path
 
-from . import views
 from blog.views import IndexView
+
+from . import views
 
 app_name = 'blog'
 
@@ -20,4 +21,5 @@ urlpatterns = [
          name='comment_add'),
     path('posts/<int:post_id>/edit_comment/<int:comment_id>/',
          views.comment_edit, name='comment_edit'),
+     
 ]
