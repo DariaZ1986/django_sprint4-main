@@ -30,8 +30,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 
-# Application definition
+EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
+
+LOGIN_REDIRECT_URL = 'blog:index'
 
 INSTALLED_APPS = [
     'pages.apps.PagesConfig',
