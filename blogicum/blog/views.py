@@ -2,6 +2,7 @@ from datetime import datetime
 
 from blog.models import Category, Post
 from django.shortcuts import get_object_or_404, render
+from django.views.generic import ListView
 
 
 def get_filtered_posts(queryset):
@@ -15,11 +16,22 @@ def get_filtered_posts(queryset):
     )
 
 
-def index(request):
-    template = 'blog/index.html'
-    post_list = get_filtered_posts(Post.objects)[:5]
-    context = {'post_list': post_list}
-    return render(request, template, context)
+class IndexView(ListView):
+    model = Post
+    template_name = 'blog/index.html'
+    context_object_name = 'post_list'
+    paginate_by = 10  # Пагинация на 10 постов
+
+    def get_queryset(self):
+        return (
+            Post.objects.select_related('author', 'category', 'location')
+            .filter(
+                is_published=True,
+                pub_date__lte=datetime.now(),
+                category__is_published=True,
+            )
+            .order_by('-pub_date')
+        )
 
 
 def category_posts(request, category_slug):
@@ -41,3 +53,28 @@ def post_detail(request, id):
     post = get_object_or_404(get_filtered_posts(Post.objects.all()), id=id)
     context = {'post': post}
     return render(request, template, context)
+
+
+def post_delete(request):
+    pass
+
+
+def comment_add(request):
+    pass
+
+
+def comment_edit(request):
+    pass
+
+
+def comment_delete(request):
+    pass
+
+
+def create_post(request):
+    pass
+
+
+def profile(request):
+    pass
+
