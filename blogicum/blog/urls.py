@@ -1,6 +1,6 @@
 from django.urls import path
 
-from blog.views import IndexView, ProfileView
+from blog.views import IndexView, PostCreateView, ProfileView
 
 from . import views
 
@@ -13,7 +13,7 @@ urlpatterns = [
           name='category_posts'),
      path('profile/<str:username>/', views.ProfileView.as_view(),
           name='profile'),
-     path('posts/create/', views.create_post, name='create_post'),
+     path('posts/create/', PostCreateView.as_view(), name='create_post'),
      path('posts/<int:post_id>/', views.post_detail, name='post_detail'),
      path('posts/<int:post_id>/delete/', views.post_delete, name='post_delete'),
      path('posts/<int:post_id>/delete_comment/<int:comment_id>/',

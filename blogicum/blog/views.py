@@ -1,25 +1,57 @@
 from datetime import datetime
 
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
-from django.views.generic import DetailView, ListView, UpdateView
+from django.utils import timezone
+from django.utils.timezone import now
+from django.views.generic import CreateView, ListView, UpdateView
 
 from blog.models import Category, Post
 
-from .forms import UserProfileForm
+from .forms import PostForm, UserProfileForm
 
 
-class ProfileView(DetailView):
-    model = User
+class MyLoginRequiredMixin(LoginRequiredMixin):
+    login_url = '/users/login/'
+    redirect_field_name = 'next'
+
+
+class PostCreateView(MyLoginRequiredMixin, CreateView):
+    model = Post
+    form_class = PostForm
+    template_name = 'blog/create.html'
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        form.instance.pub_date = timezone.now()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('blog:profile',
+                            kwargs={'username': self.request.user.username})
+
+
+class ProfileView(MyLoginRequiredMixin, ListView):
+    model = Post
     template_name = 'blog/profile.html'
-    context_object_name = 'profile'
+    context_object_name = 'page_obj'
+    paginate_by = 10
 
-    def get_object(self):
+    def get_queryset(self):
         username = self.kwargs.get('username')
-        return User.objects.get(username=username)
+        user = get_object_or_404(User, username=username)
+        return Post.objects.filter(author=user).order_by('-pub_date')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['profile'] = get_object_or_404(
+            User, username=self.kwargs.get('username'))
+        context['now'] = now()
+        return context
 
 
 def get_filtered_posts(queryset):
@@ -33,7 +65,7 @@ def get_filtered_posts(queryset):
     )
 
 
-class ProfileUpdateView(UpdateView):
+class ProfileUpdateView(MyLoginRequiredMixin, UpdateView):
     model = User
     form_class = UserProfileForm
     template_name = 'blog/user.html'

@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.utils import timezone
 
 from blog.constants import MAX_LENGTH
 from core.models import PublishedModel
@@ -55,7 +56,8 @@ class Post(PublishedModel):
         help_text=(
             'Если установить дату и время в будущем — '
             'можно делать отложенные публикации.'
-        )
+        ),
+        default=timezone.now
     )
     author = models.ForeignKey(
         User,
