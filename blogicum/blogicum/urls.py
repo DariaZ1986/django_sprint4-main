@@ -17,19 +17,19 @@ from django.conf import settings
 from django.conf.urls import handler403, handler404, handler500
 from django.contrib import admin
 from django.urls import include, path
+from django.conf.urls.static import static
+from pages.views import page_not_found, permission_denied, server_error
 
-from core.views import page_not_found, permission_denied, server_error
-
-handler404 = 'core.views.page_not_found'
-handler500 = 'core.views.server_error'
-handler403 = 'core.views.permission_denied'
+handler404 = 'pages.views.page_not_found'
+handler500 = 'pages.views.server_error'
+handler403 = 'pages.views.permission_denied'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('blog.urls', namespace='blog')),
     path('pages/', include('pages.urls', namespace='pages')),
     path('auth/', include('users.urls', namespace='users')),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
     import debug_toolbar
