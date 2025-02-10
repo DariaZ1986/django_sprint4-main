@@ -4,8 +4,6 @@ from blog.views import (CategoryPostListView, CommentCreateView,
                         PostUpdateView, ProfileUpdateView, ProfileView)
 from django.urls import path
 
-from . import views
-
 app_name = 'blog'
 
 
@@ -26,5 +24,5 @@ urlpatterns = [
          CommentEditView.as_view(), name='edit_comment'),
     path('posts/<int:post_id>/delete_comment/<int:id>/',
          CommentDeleteView.as_view(), name='delete_comment'),
-     
+
 ]

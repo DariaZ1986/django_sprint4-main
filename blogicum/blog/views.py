@@ -1,10 +1,8 @@
 from django.db.models import Count
 from blog.models import Category, Comment, Post
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
-from django.core.paginator import Paginator
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.timezone import now
@@ -84,7 +82,8 @@ class ProfileView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['profile'] = get_object_or_404(User, username=self.kwargs.get('username'))
+        context['profile'] = get_object_or_404(
+            User, username=self.kwargs.get('username'))
         context['now'] = now()
         return context
 
