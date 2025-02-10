@@ -1,9 +1,8 @@
+from blog.constants import MAX_LENGTH
+from core.models import PublishedModel
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
-
-from blog.constants import MAX_LENGTH
-from core.models import PublishedModel
 
 User = get_user_model()
 
@@ -90,12 +89,10 @@ class Post(PublishedModel):
         return self.title
 
 
-class Comment(models.Model):
+class Comment(PublishedModel):
     post = models.ForeignKey(Post, on_delete=models.CASCADE,
-                             related_name='comments')
+                             related_name="comments")
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Комментарий от {self.author} к {self.post.title}"
+    is_published = models.BooleanField(default=True)
