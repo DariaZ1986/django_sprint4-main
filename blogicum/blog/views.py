@@ -174,9 +174,9 @@ class PostDetailView(MyLoginRequiredMixin, DetailView):
             id=self.kwargs['id']
         )
 
-        if not (post.category.is_published and
-                post.is_published and
-                post.pub_date <= timezone.now()):
+        if not (post.category.is_published
+                and post.is_published
+                and post.pub_date <= timezone.now()):
             if post.author != self.request.user:
                 raise Http404("Post not found")
 
