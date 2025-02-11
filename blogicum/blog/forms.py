@@ -18,7 +18,7 @@ class PostForm(forms.ModelForm):
         fields = ['title', 'text', 'category', 'location', 'pub_date', 'image']
 
     def clean_publish_date(self):
-        publish_date = self.cleaned_data.get('publish_date')
+        publish_date = self.cleaned_data.get('pub_date')
         if publish_date and publish_date < datetime.now():
             raise forms.ValidationError(
                 'Дата публикации не может быть в прошлом!')

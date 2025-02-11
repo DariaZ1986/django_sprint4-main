@@ -1,8 +1,9 @@
-from blog.constants import MAX_LENGTH
-from core.models import PublishedModel
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
+
+from blog.constants import MAX_LENGTH
+from core.models import PublishedModel
 
 User = get_user_model()
 

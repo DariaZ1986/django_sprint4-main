@@ -1,13 +1,15 @@
-from django.db.models import Count
-from blog.models import Category, Comment, Post
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
+from django.db.models import Count
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.timezone import now
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
+
+from blog.models import Category, Comment, Post
 
 from .forms import CommentForm, PostForm, UserProfileForm
 
@@ -41,7 +43,7 @@ class PostUpdateView(MyLoginRequiredMixin, UserPassesTestMixin, UpdateView):
     template_name = 'blog/create.html'
 
     def get_success_url(self):
-        return reverse_lazy('post_detail', kwargs={'id': self.object.id})
+        return reverse_lazy('blog:post_detail', kwargs={'id': self.object.id})
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
@@ -50,7 +52,12 @@ class PostUpdateView(MyLoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return form
 
     def test_func(self):
-        return self.get_object() == self.request.user
+        post = self.get_object()
+        return post.author == self.request.user
+
+    def handle_no_permission(self):
+        post = self.get_object()
+        return redirect('blog:post_detail', id=post.id)
 
 
 class PostDeleteView(MyLoginRequiredMixin, UserPassesTestMixin, DeleteView):
@@ -63,6 +70,10 @@ class PostDeleteView(MyLoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
     def get_object(self, queryset=None):
         return get_object_or_404(Post, id=self.kwargs['id'])
+    
+    def test_func(self):
+        post = self.get_object()
+        return post.author == self.request.user
 
 
 class ProfileView(ListView):
@@ -158,21 +169,21 @@ class PostDetailView(MyLoginRequiredMixin, DetailView):
     context_object_name = 'post'
 
     def get_object(self, queryset=None):
-        return get_object_or_404(
-            Post.objects.select_related(
-                'author', 'category', 'location').filter(
-                is_published=True,
-                pub_date__lte=timezone.now(),
-                category__is_published=True
-            ),
+        post = get_object_or_404(
+            Post.objects.select_related('author', 'category', 'location'),
             id=self.kwargs['id']
         )
+
+        if not (post.category.is_published and post.is_published and post.pub_date <= timezone.now()):
+            if post.author != self.request.user:
+                raise Http404("Post not found")
+
+        return post
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['form'] = CommentForm()
         context['comments'] = self.object.comments.all()
-        context['comment_count'] = self.object.comments.count()
         return context
 
 
