@@ -70,7 +70,7 @@ class PostDeleteView(MyLoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
     def get_object(self, queryset=None):
         return get_object_or_404(Post, id=self.kwargs['id'])
-    
+
     def test_func(self):
         post = self.get_object()
         return post.author == self.request.user
