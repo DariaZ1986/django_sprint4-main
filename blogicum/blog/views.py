@@ -1,4 +1,5 @@
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from blog.models import Category, Comment, Post
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.db.models import Count
 from django.http import Http404
@@ -9,17 +10,23 @@ from django.utils.timezone import now
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
 
-from blog.models import Category, Comment, Post
-
+from .constants import PAGINATION_SIZE
 from .forms import CommentForm, PostForm, UserProfileForm
+from .mixins import MyLoginRequiredMixin
 
 
-class MyLoginRequiredMixin(LoginRequiredMixin):
-    login_url = '/auth/login/'
-    redirect_field_name = 'next'
+def get_filtered_posts(queryset):
+    return (
+        queryset.select_related('author', 'category', 'location')
+        .filter(
+            is_published=True,
+            pub_date__lte=timezone.now(),
+            category__is_published=True,
+        )
+    )
 
 
-class PostCreateView(LoginRequiredMixin, CreateView):
+class PostCreateView(MyLoginRequiredMixin, CreateView):
     model = Post
     form_class = PostForm
     template_name = 'blog/create.html'
@@ -48,7 +55,7 @@ class PostUpdateView(MyLoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         if not form:
-            raise ValueError("Form class is None or invalid.")
+            raise ValueError('Form class is None or invalid.')
         return form
 
     def test_func(self):
@@ -80,14 +87,14 @@ class ProfileView(ListView):
     model = Post
     template_name = 'blog/profile.html'
     context_object_name = 'page_obj'
-    paginate_by = 10
+    paginate_by = PAGINATION_SIZE
 
     def get_queryset(self):
         username = self.kwargs.get('username')
         user = get_object_or_404(User, username=username)
         return (
             Post.objects.filter(author=user)
-            .annotate(comment_count=Count("comments"))
+            .annotate(comment_count=Count('comments'))
             .order_by('-pub_date')
         )
 
@@ -103,7 +110,7 @@ class CategoryPostListView(ListView):
     model = Post
     template_name = 'blog/category.html'
     context_object_name = 'post_list'
-    paginate_by = 10
+    paginate_by = PAGINATION_SIZE
 
     def get_queryset(self):
         category_slug = self.kwargs.get('category_slug')
@@ -116,7 +123,7 @@ class CategoryPostListView(ListView):
                 is_published=True,
                 pub_date__lte=timezone.now()
             )
-            .annotate(comment_count=Count("comments"))
+            .annotate(comment_count=Count('comments'))
             .order_by('-pub_date')
         )
 
@@ -144,23 +151,15 @@ class ProfileUpdateView(MyLoginRequiredMixin, UserPassesTestMixin, UpdateView):
                             kwargs={'username': self.request.user.username})
 
 
-class IndexView(ListView):
-    model = Post
-    template_name = 'blog/index.html'
-    context_object_name = 'post_list'
-    paginate_by = 10
+class IndexView(ListView): 
+    model = Post 
+    template_name = 'blog/index.html' 
+    context_object_name = 'post_list' 
+    paginate_by = 10 
 
-    def get_queryset(self):
-        return (
-            Post.objects.select_related('author', 'category', 'location')
-            .filter(
-                is_published=True,
-                pub_date__lte=timezone.now(),
-                category__is_published=True,
-            )
-            .annotate(comment_count=Count("comments"))
-            .order_by('-pub_date')
-        )
+    def get_queryset(self): 
+        return get_filtered_posts(Post.objects.all()).annotate(
+            comment_count=Count("comments")).order_by('-pub_date')
 
 
 class PostDetailView(MyLoginRequiredMixin, DetailView):
@@ -176,9 +175,9 @@ class PostDetailView(MyLoginRequiredMixin, DetailView):
 
         if not (post.category.is_published
                 and post.is_published
-                and post.pub_date <= timezone.now()):
-            if post.author != self.request.user:
-                raise Http404("Post not found")
+                and post.pub_date <= timezone.now()) and (
+                    post.author != self.request.user):
+            raise Http404('Post not found')
 
         return post
 
