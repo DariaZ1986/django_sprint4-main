@@ -151,13 +151,13 @@ class ProfileUpdateView(MyLoginRequiredMixin, UserPassesTestMixin, UpdateView):
                             kwargs={'username': self.request.user.username})
 
 
-class IndexView(ListView): 
-    model = Post 
-    template_name = 'blog/index.html' 
-    context_object_name = 'post_list' 
-    paginate_by = 10 
+class IndexView(ListView):
+    model = Post
+    template_name = 'blog/index.html'
+    context_object_name = 'post_list'
+    paginate_by = PAGINATION_SIZE
 
-    def get_queryset(self): 
+    def get_queryset(self):
         return get_filtered_posts(Post.objects.all()).annotate(
             comment_count=Count("comments")).order_by('-pub_date')
 
